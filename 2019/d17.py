@@ -52,9 +52,9 @@ async def main():
 
     D = {'<': -1, '>': 1, 'v': 1j, '^': -1j}
     T = {1j: 'R', -1j: 'L'}
-    p = next(p for p in map if map[p] in D)
-    d = D[map[p]]
-    tgt = len(tuple(p for p in map if map[p] == '#'))
+    p = next(p for p in map if map[p] in D)  # get robot location
+    d = D[map[p]]  # and direction
+    tgt = len(tuple(p for p in map if map[p] == '#'))  # number of unvisited spots
     visited = set()
     path = ''
     step = 0
@@ -70,45 +70,32 @@ async def main():
                 if step > 0:
                     path += f'{step},'
                 break
-            if (rp := p + d * 1j) not in visited and map.get(rp, '') == '#':
-                if step > 0:
-                    path += f'{step},'
-                    step = 0
-                d *= 1j
-                path += 'R,'
-                continue
-            if (lp := p + d * (-1j)) not in visited and map.get(lp, '') == '#':
-                if step > 0:
-                    path += f'{step},'
-                    step = 0
-                d *= -1j
-                path += 'L,'
-                continue
-            # if we got here, all available spots are visited
-            if map[np] == '#':
-                step += 1
-                p = np
-                visited.add(p)
+            # look for an unvisited spot
+            for turn in T:
+                if (tp := p + d * turn) not in visited and map.get(tp, '') == '#':
+                    if step > 0:
+                        path += f'{step},'
+                        step = 0
+                    d *= turn
+                    path += f'{T[turn]},'
+                    break
             else:
-                if step > 0:
-                    path += f'{step},'
-                    step = 0
-                if map.get(p + d * 1j, '') == '#':
-                    if step > 0:
-                        path += f'{step},'
-                        step = 0
-                    d *= 1j
-                    path += 'R,'
-                    continue
-                if map.get(p + d * (-1j), '') == '#':
-                    if step > 0:
-                        path += f'{step},'
-                        step = 0
-                    d *= -1j
-                    path += 'L,'
-                    continue
-
-                raise Exception("not sure")
+                # if we got here, all available spots are visited, just keep going till we find one
+                if map.get(np, '') == '#':
+                    step += 1
+                    p = np
+                    visited.add(p)
+                else:
+                    for turn in T:
+                        if map.get(p + d * turn, '') == '#':
+                            if step > 0:
+                                path += f'{step},'
+                                step = 0
+                            d *= turn
+                            path += f'{T[turn]},'
+                            break
+                    else:
+                        raise Exception("not sure")
 
     # let's try and find 3 repeating substrings at most 20 chars long
     # for each substring, assume it has to start at the beginning of the (remaining) string (one has to)

@@ -1,0 +1,21 @@
+data Pt(x, y):
+    def __add__(self, other) = map((+), self, other) |*> Pt
+
+    def __sub__(self, other) = map((-), self, other) |*> Pt
+
+    def __hash__(self) = tuple.__hash__(self)
+
+    @staticmethod
+    def directions():
+        for dir in ((0, -1), (-1, 0), (1, 0),(0, 1)):
+            yield dir |*> Pt
+
+    def nb4(self) =  Pt.directions() |> map$((+)$(self)) |> map$(t -> Pt(*t))
+
+if __name__ == '__main__':
+    assert Pt(0,0) + Pt(1,3) == Pt(1,3)
+    assert Pt(1,3) - Pt(1,1) == Pt(0,2)
+
+    for nb in Pt(1,2).nb4():
+        print(nb)
+

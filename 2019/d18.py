@@ -38,12 +38,13 @@ map_keys = set(k for k in KEYS if k in map.values())
 num_keys = len(map_keys)
 kpos = {map[p]: p for p in map if map[p] in KEYS}
 
-
 # dpos = {map[p]: p for p in map if map[p] in DOORS}
 
 
 print(start, num_keys)
 
+
+# build an nx graph of all possible moves (including through doors)
 def build_graph(start, map):
     g = nx.Graph()
     q = deque([start])
@@ -64,7 +65,8 @@ def build_graph(start, map):
     return g
 
 
-def build_paths(g, map_keys, kpos):
+# build key to key shortest path mappings (include start)
+def build_paths(start, g, map_keys, kpos):
     paths = {}
     kpos['@'] = start
     for s in map_keys | {'@'}:
@@ -76,11 +78,11 @@ def build_paths(g, map_keys, kpos):
     return paths
 
 
-# g = build_graph(start, map)
-# paths = build_paths(g, map_keys, kpos)
-g, paths = None, None
+g = build_graph(start, map)
+paths = build_paths(start, g, map_keys, kpos)
 
 
+# find accessible keys from this position
 def find_keys(pos, map, keys, map_keys=map_keys, kpos=kpos, paths=paths):
     doors = set(k.upper() for k in keys)
     test = doors | set('.@' + KEYS)
@@ -118,6 +120,8 @@ def search(start, map):
 # part 1
 # for path in search(start, map):
 #     print(path)
+n = min(n for n, keys in search(start, map))
+print(f'part 1: {n}')
 # (5450, ('l', 'g', 'a', 'z', 'p', 'h', 'o', 'm', 'd', 'v', 'y', 'q', 'x', 'i', 'c', 's', 't', 'r', 'w', 'k', 'e', 'b', 'n', 'u', 'f', 'j'))
 # 430s (pypy)
 # now 34s (100s with pypy)
@@ -186,7 +190,6 @@ starts = tuple(k for k in map if map[k] == '@')
 map_keys = set(k for k in KEYS if k in map.values())
 num_keys = len(map_keys)
 kpos = {map[p]: p for p in map if map[p] in KEYS}
-# dpos = {map[p]: p for p in map if map[p] in DOORS}
 
 print(starts)
 
@@ -194,18 +197,18 @@ rbots = []
 for start in starts:
     g = build_graph(start, map)
     rkpos = {k: p for k in kpos if (p := kpos[k]) in g.nodes}
-    # rdpos = {k: dpos[k] for k in dpos if k in g}
     rmap_keys = {k for k in map_keys if kpos[k] in g.nodes}
     rpaths = build_paths(g, rmap_keys, rkpos)
     rbots.append([start, g, rkpos, rmap_keys, rpaths])
 
-    # print(rmap_keys)
+# for res in multi_search(rbots, map):
+#     print(res)
 
-for res in multi_search(rbots, map):
-    print(res)
+n = min(n for n, keys in multi_search(rbots, map))
+print(f'part 2: {n}')
 
 # part 2
-#(2020, ('h', 'o', 'z', 'l', 'g', 'a', 't', 'p', 'm', 'd', 'v', 'y', 'r', 'q', 'w', 'k', 's', 'x', 'i', 'c', 'e', 'b', 'n', 'u', 'f', 'j'))
+# (2020, ('h', 'o', 'z', 'l', 'g', 'a', 't', 'p', 'm', 'd', 'v', 'y', 'r', 'q', 'w', 'k', 's', 'x', 'i', 'c', 'e', 'b', 'n', 'u', 'f', 'j'))
 # 70s
 
 print(f'time: {perf_counter() - t:.2f}s')

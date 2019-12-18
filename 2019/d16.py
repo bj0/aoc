@@ -17,15 +17,15 @@ def pat0(i, sig, s=None):
     idx = s or i
     n = len(sig)
     while idx < n:
-        # print(sig[idx:idx+i+1],idx,i)
         yield from sig[idx:idx + i + 1]
         idx += i + 1 + (3 * (i + 1))
-    # print('d')
 
 
 def phase0(sig):
     return tuple(abs(sum(pat0(i, sig)) - sum(pat0(i, sig, 3 * (i + 1) - 1))) % 10 for i in range(len(sig)))
     # slower
+    # N = len(sig)
+    # return tuple(abs(sum( (0,1,0,-1)[(i+1)//(k+1)%4]*sig[i] for i in range(N) )) % 10 for k in range(N))
     # return tuple(abs(sum(sum(sig[i::(k+1)*4]) - sum(sig[i+2*(k+1)::(k+1)*4]) for k in range(i+1))) %10 for i in range(len(sig)))
 
 

@@ -198,7 +198,7 @@ for start in starts:
     g = build_graph(start, map)
     rkpos = {k: p for k in kpos if (p := kpos[k]) in g.nodes}
     rmap_keys = {k for k in map_keys if kpos[k] in g.nodes}
-    rpaths = build_paths(g, rmap_keys, rkpos)
+    rpaths = build_paths(start, g, rmap_keys, rkpos)
     rbots.append([start, g, rkpos, rmap_keys, rpaths])
 
 # for res in multi_search(rbots, map):

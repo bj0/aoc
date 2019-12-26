@@ -1,4 +1,5 @@
 from enum import Enum
+from itertools import takewhile
 
 import trio
 
@@ -111,3 +112,34 @@ def init(data, rb=0):
     memory = {i: int(data[i]) for i in range(len(data))}
     memory['rb'] = rb
     return memory
+
+
+def send_ascii(chan, line):
+    for c in line:
+        # await chan.send(ord(c))
+        chan.send_nowait(ord(c))
+    if c != '\n':
+        # await chan.send(10)
+        chan.send_nowait(10)
+
+
+async def recv_ascii(chan):
+    line = ''
+    while line[-1] != '\n':
+        line += chr(await chan.recv())
+
+    return line[:-1]
+
+
+async def irecv_ascii(chan):
+    line = ''
+    async for c in chan:
+        if c == Command.INPUT:
+            yield c
+        elif c > 255:
+            yield c
+        elif c == 10:
+            yield line
+            line = ''
+        else:
+            line += chr(c)

@@ -14,6 +14,7 @@ async def execute_instruction(idx, mem, input, output):
     """
     op = mem[idx]
     if op == 99:  # halt
+        print('halt')
         return None
 
     # op modes (0 = address, 1 = immediate, 2 = relative)
@@ -115,6 +116,10 @@ def init(data, rb=0):
 
 
 def send_ascii(chan, line):
+    """
+    Send a line of ascii as ord codes to the input channel.  For this to work the channel must have a buffer,
+    nowait is used.
+    """
     for c in line:
         # await chan.send(ord(c))
         chan.send_nowait(ord(c))
@@ -143,3 +148,6 @@ async def irecv_ascii(chan):
             line = ''
         else:
             line += chr(c)
+    # chan closed
+    if line:
+        yield line

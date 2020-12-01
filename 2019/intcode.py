@@ -1,5 +1,4 @@
 from enum import Enum
-from itertools import takewhile
 
 import trio
 
@@ -52,10 +51,10 @@ async def execute_instruction(idx, mem, input, output):
             inp = input.receive_nowait()
         except trio.WouldBlock:
             try:
+                # signal for input if nothing is already available
                 await output.send(Command.INPUT)
             except trio.BrokenResourceError:
-                print('input closed')
-                return None
+                raise Exception("input closed")
             inp = await input.receive()
         return idx + 2, {**mem, a: inp}
     elif op == 4:  # output
@@ -102,8 +101,9 @@ async def process(memory, input, output):
     program = memory
     idx = 0
     async with output, input:
-        while next := await execute_instruction(idx, program, input, output):
-            idx, program = next
+        # execute_instruction returns None on halt
+        while nxt := await execute_instruction(idx, program, input, output):
+            idx, program = nxt
 
 
 def init(data, rb=0):
@@ -121,10 +121,8 @@ def send_ascii(chan, line):
     nowait is used.
     """
     for c in line:
-        # await chan.send(ord(c))
         chan.send_nowait(ord(c))
     if c != '\n':
-        # await chan.send(10)
         chan.send_nowait(10)
 
 
@@ -137,6 +135,10 @@ async def recv_ascii(chan):
 
 
 async def irecv_ascii(chan):
+    """
+    Wrap an output channel in an async generator that yields full ascii lines.  Input requests are passed through as
+    they come in.
+    """
     line = ''
     async for c in chan:
         if c == Command.INPUT:

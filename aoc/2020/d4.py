@@ -2,14 +2,10 @@ import re
 
 from aocd import data
 
-pps = []
-for pp in re.split('\n\n', data):
-    pport = {}
-    for field in pp.split():
-        key, val = field.split(":")
-        pport[key] = val
-
-    pps.append(pport)
+pps = [
+    dict(field.split(':') for field in pp.split())
+    for pp in re.split('\n\n', data)
+]
 
 required = 'byr iyr eyr hgt hcl ecl pid'.split()
 

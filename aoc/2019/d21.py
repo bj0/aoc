@@ -4,6 +4,7 @@ from time import perf_counter
 import intcode
 import trio
 from aocd import data
+from aocd.models import Puzzle
 
 
 async def run(memory, input):
@@ -27,7 +28,7 @@ async def run(memory, input):
                         print(status)
 
 
-async def main():
+async def amain():
     memory = intcode.init(data.strip().split(','))
 
     t = perf_counter()
@@ -56,4 +57,10 @@ AND T J
     """)
 
 
-trio.run(main)
+def main(*_):
+    trio.run(amain)
+
+
+if __name__ == '__main__':
+    main()
+    print(Puzzle(2019, 21).answers)

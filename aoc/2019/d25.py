@@ -244,7 +244,7 @@ async def run(memory):
             print('the end')
 
 
-async def main():
+async def amain():
     memory = intcode.init(data.strip().split(','))
 
     t = perf_counter()
@@ -253,5 +253,13 @@ async def main():
 
     print(f'time: {perf_counter() - t:.2f}s')
 
+    # solution in final text
+    return 295944, None
 
-trio.run(main)
+
+def main(*_):
+    return trio.run(amain)
+
+
+if __name__ == '__main__':
+    main()

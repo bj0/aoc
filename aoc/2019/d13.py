@@ -1,13 +1,16 @@
+from collections import Counter
+
 import intcode
 import trio
 from aocd import data
+from aocd.models import Puzzle
 
 
 def find_target(db, c, map):
     map = dict(map)
     dir = db
     pos = c
-    print(pos, dir, pos + dir)
+    # print(pos, dir, pos + dir)
     while (next := pos + dir).imag < 20:
         # print(pos, next, dir)
         x = complex(pos.real, next.imag)
@@ -39,7 +42,7 @@ def find_target(db, c, map):
 
         pos = next
     pos = complex(pos.real, next.imag)
-    print(f'target: {pos}')
+    # print(f'target: {pos}')
     return pos
 
 
@@ -68,6 +71,7 @@ async def run(memory):
         last_ball = 0
         pad = 0
         target = None
+        score = 0
         try:
             while True:
                 x = await out_recv.receive()
@@ -76,8 +80,9 @@ async def run(memory):
                 c = x + y * 1j
 
                 if x == -1 and y == 0:
-                    print(f'score {id}')
-                    print_map(map)
+                    # print(f'score {id}')
+                    score = id
+                    # print_map(map)
                     continue
                 else:
                     map[c] = id
@@ -89,7 +94,7 @@ async def run(memory):
                     if last_ball:
                         db = c - last_ball
                         if not target or (c.imag == 19):
-                            print_map(map)
+                            # print_map(map)
                             if not target:
                                 target = find_target(db, c, map)
                             else:
@@ -105,7 +110,7 @@ async def run(memory):
         except (trio.BrokenResourceError, trio.EndOfChannel):
             pass  # channel closed
 
-        return map
+        return map, score
 
 
 _char = {0: '.', 1: '#', 2: 'b', 3: '-', 4: 'O'}
@@ -119,16 +124,24 @@ def print_map(map):
         print()
 
 
-async def main():
+async def amain():
     memory = intcode.init(data.strip().split(','))
-    # result = await run(memory)
-    # result = Counter(result.values())
-    # print(f'part 1: {result[2]}')
+    result, score = await run(memory)
+    result = Counter(result.values())
+    part_a = result[2]
+    print(f'part 1: {part_a}')
 
     # quarter
     memory = {**memory, 0: 2}
-    result = await run(memory)
-    print(result)
+    result, score = await run(memory)
+    print(f'part 2: {score}')
+    return part_a, score
 
 
-trio.run(main)
+def main(*_):
+    return trio.run(amain)
+
+
+if __name__ == '__main__':
+    main()
+    print(Puzzle(2019, 13).answers)

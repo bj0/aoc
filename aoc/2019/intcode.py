@@ -7,13 +7,31 @@ class Command(Enum):
     INPUT = 0
 
 
-async def execute_instruction(idx, mem, input, output):
+async def _get_input(input, output, prompt):
+    # return await input.receive()
+    # we want to ignore INPUT commands for process to process ipc
+    inp = Command.INPUT
+    while inp == Command.INPUT:
+        try:
+            inp = input.receive_nowait()
+        except trio.WouldBlock:
+            try:
+                # signal for input if nothing is already available
+                if prompt:
+                    await output.send(Command.INPUT)
+            except trio.BrokenResourceError:
+                raise Exception("input closed")
+            inp = await input.receive()
+    return inp
+
+
+async def execute_instruction(idx, mem, input, output, prompt=True):
     """
     Execute a single intcode instruction/opcode
     """
     op = mem[idx]
     if op == 99:  # halt
-        print('halt')
+        # print('halt')
         return None
 
     # op modes (0 = address, 1 = immediate, 2 = relative)
@@ -47,15 +65,7 @@ async def execute_instruction(idx, mem, input, output):
     elif op == 3:  # input
         a = mem[idx + 1]
         a = get_addr(ma, a)
-        try:
-            inp = input.receive_nowait()
-        except trio.WouldBlock:
-            try:
-                # signal for input if nothing is already available
-                await output.send(Command.INPUT)
-            except trio.BrokenResourceError:
-                raise Exception("input closed")
-            inp = await input.receive()
+        inp = await _get_input(input, output, prompt)
         return idx + 2, {**mem, a: inp}
     elif op == 4:  # output
         a = mem[idx + 1]
@@ -93,17 +103,26 @@ async def execute_instruction(idx, mem, input, output):
         raise Exception(f"invalid op: {op}")
 
 
-async def process(memory, input, output):
+async def _process(memory, input=None, output=None, prompt=False):
+    program = memory
+    idx = 0
+    while nxt := await execute_instruction(idx, program, input, output, prompt):
+        idx, program = nxt
+
+    return program
+
+
+async def process(memory, input=None, output=None, prompt=True):
     """
     Process the intcode in memory to completion, taking input from the input channel and putting output on the
     output channel.  Channels are awaited and closed once the process finishes.
     """
-    program = memory
-    idx = 0
+    if input is None or output is None:
+        return await _process(memory)
+
     async with output, input:
         # execute_instruction returns None on halt
-        while nxt := await execute_instruction(idx, program, input, output):
-            idx, program = nxt
+        return await _process(memory, input, output, prompt)
 
 
 def init(data, rb=0):

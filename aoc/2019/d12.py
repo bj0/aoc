@@ -4,6 +4,7 @@ from math import gcd
 from time import perf_counter
 
 from aocd import data
+from aocd.models import Puzzle
 
 
 class Moon:
@@ -67,37 +68,47 @@ def idx(moons, i):
     return tuple((m.pos[i], m.v[i]) for m in moons)
 
 
-t = perf_counter()
+def main(*_):
+    t = perf_counter()
 
-state = [set(idx(moons, 0)), set(idx(moons, 1)), set(idx(moons, 2))]
-rx = [None] * 3
-for i in range(1000):
-    step(moons)
-    for j in range(3):
-        if not rx[j]:
-            if (id := idx(moons, j)) in state[j]:
-                rx[j] = i
-                # print(f'repeat {j} at {rx[j]}')
-                # print(id)
-            else:
-                state[j].add(id)
-
-print(f'part 1: {sum(m.energy for m in moons)}')
-
-if not all(rx):
-    for j in range(1000000):
+    state = [set(idx(moons, 0)), set(idx(moons, 1)), set(idx(moons, 2))]
+    rx = [None] * 3
+    for i in range(1000):
         step(moons)
-        for k in range(3):
-            if not rx[k]:
-                if (id := idx(moons, k)) in state[k]:
-                    rx[k] = i + j + 1
-                    # print(f'repeat {k} at {rx[k]}')
+        for j in range(3):
+            if not rx[j]:
+                if (id := idx(moons, j)) in state[j]:
+                    rx[j] = i
+                    # print(f'repeat {j} at {rx[j]}')
+                    # print(id)
                 else:
-                    state[k].add(id)
-        if all(rx):
-            break
+                    state[j].add(id)
 
-print(rx)
-print(f'part 2: {reduce(lambda a, b: a * b // gcd(a, b), rx)}')
+    part_a = sum(m.energy for m in moons)
+    print(f'part 1: {part_a}')
 
-print(f'time: {perf_counter() - t:.2f}s')
+    if not all(rx):
+        for j in range(1000000):
+            step(moons)
+            for k in range(3):
+                if not rx[k]:
+                    if (id := idx(moons, k)) in state[k]:
+                        rx[k] = i + j + 1
+                        # print(f'repeat {k} at {rx[k]}')
+                    else:
+                        state[k].add(id)
+            if all(rx):
+                break
+
+    print(rx)
+    part_b = reduce(lambda a, b: a * b // gcd(a, b), rx)
+    print(f'part 2: {part_b}')
+
+    print(f'time: {perf_counter() - t:.2f}s')
+
+    return part_a, part_b
+    # print(Puzzle(2019, 12).answers)
+
+
+if __name__ == '__main__':
+    main()

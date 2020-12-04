@@ -1,6 +1,7 @@
 import intcode
 import trio
 from aocd import data
+from aocd.models import Puzzle
 
 
 async def run(memory, input=None):
@@ -34,7 +35,7 @@ async def run(memory, input=None):
     return map, out
 
 
-async def main():
+async def amain():
     memory = intcode.init(data.strip().split(','))
 
     map, out = await run(memory)
@@ -48,6 +49,7 @@ async def main():
                 print(f'is at {p}')
                 a += p.real * p.imag
 
+    part_a = a
     print(f'part 1: {a}')
 
     D = {'<': -1, '>': 1, 'v': 1j, '^': -1j}
@@ -157,6 +159,13 @@ async def main():
     dust = await run(memory, input)
     print(f'part 2: {dust}')
     # 807320
+    return part_a, dust
 
 
-trio.run(main)
+def main(*_):
+    return trio.run(amain)
+
+
+if __name__ == '__main__':
+    main()
+    print(Puzzle(2019, 17).answers)

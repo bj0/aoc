@@ -4,6 +4,7 @@ from time import perf_counter
 import intcode
 import trio
 from aocd import data
+from aocd.models import Puzzle
 
 IDLE = object()
 
@@ -47,7 +48,7 @@ async def run(memory):
                     ic += 1
                     await ins[0].send(NAT[0])
                     await ins[0].send(NAT[1])
-                    print('ic', ic)
+                    # print('ic', ic)
                     # for some reason (timing?) after sending the reset, i still get them all going idle 2x before they
                     # start sending/receiving again
                     if ic > 3:
@@ -55,7 +56,7 @@ async def run(memory):
                         print('sending', NAT)
                         if last == NAT:
                             print('double NAT:', last)
-                            exit()
+                            return
                 last = NAT
                 await ins[i].send(-1)
             else:
@@ -69,7 +70,7 @@ async def run(memory):
                 await ins[addr].send(y)
 
 
-async def main():
+async def amain():
     memory = intcode.init(data.strip().split(','))
 
     t = perf_counter()
@@ -79,4 +80,10 @@ async def main():
     # part 2: 10650
 
 
-trio.run(main)
+def main(*_):
+    return trio.run(amain)
+
+
+if __name__ == '__main__':
+    main()
+    print(Puzzle(2019, 23).answers)

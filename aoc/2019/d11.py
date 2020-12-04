@@ -1,6 +1,7 @@
 import intcode
 import trio
 from aocd import data
+from aocd.models import Puzzle
 
 
 async def run(memory, start):
@@ -26,15 +27,26 @@ async def run(memory, start):
         return paint
 
 
-async def main():
+async def amain():
     memory = intcode.init(data.strip().split(','))
     paint = await run(memory, 0)
-    print(f'part 1: {len(paint)}')
+    part_a = len(paint)
+    print(f'part 1: {part_a}')
 
     paint = await run(memory, 1)
     print('part 2:')
     for r in range(-1, 7):
         print(''.join('.' if paint.get((c + r * 1j), 0) else '#' for c in range(0, 41)))
 
+    # part 2 eyeball
+    return part_a, 'BLCZCJLZ'
 
-trio.run(main)
+
+def main(*_):
+    return trio.run(amain)
+
+
+# print(Puzzle(2019, 11).answers)
+
+if __name__ == '__main__':
+    main()

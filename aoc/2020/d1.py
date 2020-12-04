@@ -1,4 +1,4 @@
-from itertools import product
+from itertools import product, combinations
 
 from aocd import data
 
@@ -40,6 +40,6 @@ a, b, c = part2(nums)
 print(f'part2 a={a}, b={b}, c={c}, {a + b + c}, {a * b * c}')
 
 # shorter
-p1 = next(a * b for (a, b) in product(nums, nums) if a + b == 2020)
-p2 = next(a * b * c for (a, b, c) in product(nums, nums, nums) if a + b + c == 2020)
+p1 = next(a * b for (a, b) in combinations(nums, 2) if a + b == 2020)
+p2 = next(a * b * c for (a, b, c) in combinations(nums, 3) if a + b + c == 2020)
 print(f'p1={p1}, p2={p2}')

@@ -1,4 +1,5 @@
 from aocd import data
+from aocd.models import Puzzle
 
 
 def mandist(s, t):
@@ -30,13 +31,19 @@ def get_pts(wire):
 # R75,D30,R83,U83,L12,D49,R71,U7,L72
 # U62,R66,U55,R34,D71,R55,D58,R83""".strip().split()
 
+def main(*_):
+    wire0, wire1 = data.strip().split()
+    pts0 = get_pts(wire0)
+    pts1 = get_pts(wire1)
+    cross = pts0.keys() & pts1.keys()
+    part_a = min(mandist((0, 0), c) for c in cross)
+    print(f'part 1: {part_a}')
 
-wire0, wire1 = data.strip().split()
-pts0 = get_pts(wire0)
-pts1 = get_pts(wire1)
-cross = pts0.keys() & pts1.keys()
-ret = min(mandist((0, 0), c) for c in cross)
-print(f'part 1: {ret}')
+    part_b = min(pts0[c] + pts1[c] for c in cross)
+    print(f'part 2: {part_b}')
 
-ret = min(pts0[c] + pts1[c] for c in cross)
-print(f'part 2: {ret}')
+    return part_a, part_b
+
+
+if __name__ == '__main__':
+    main()

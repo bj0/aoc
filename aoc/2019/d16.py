@@ -2,6 +2,7 @@ from itertools import repeat, chain, islice, cycle, accumulate
 from time import perf_counter
 
 from aocd import data
+from aocd.models import Puzzle
 
 
 def pat(base, i):
@@ -34,25 +35,35 @@ def phase0(sig):
 # data = '12345678'
 # data = '02935109699940807407585447034323'
 
-t = perf_counter()
+def main(*_):
+    t = perf_counter()
 
-sig = [int(d) for d in data.strip()]
-fft = sig
-for i in range(100):
-    fft = phase0(fft)
-print(f'part 1: {"".join(str(d) for d in fft[:8])}')
-# 10189359
+    sig = [int(d) for d in data.strip()]
+    fft = sig
+    for i in range(100):
+        fft = phase0(fft)
+    part_a = "".join(str(d) for d in fft[:8])
+    print(f'part 1: {part_a}')
+    # 10189359
 
-off = int(data[:7])
-n = len(sig)
-sig = sig * 10000
-# upper triangular, ones matrix, don't care about anything before offset, and everything else is summed
-fft = reversed(sig[off:])
-for i in range(100):
-    fft = (n % 10 for n in accumulate(fft))
-    # fft = accumulate(fft, lambda a, b: (a + b) % 10)
-fft = reversed(tuple(fft)[-8:])
-print('part 2: ', "".join(str(d) for d in fft))
-# 80722126
+    off = int(data[:7])
+    n = len(sig)
+    sig = sig * 10000
+    # upper triangular, ones matrix, don't care about anything before offset, and everything else is summed
+    fft = reversed(sig[off:])
+    for i in range(100):
+        fft = (n % 10 for n in accumulate(fft))
+        # fft = accumulate(fft, lambda a, b: (a + b) % 10)
+    fft = reversed(tuple(fft)[-8:])
+    part_b = "".join(str(d) for d in fft)
+    print('part 2: ', part_b)
+    # 80722126
 
-print(f'{perf_counter() - t:.2f}s')
+    print(f'{perf_counter() - t:.2f}s')
+    return part_a, part_b
+
+
+if __name__ == '__main__':
+    main()
+
+    print(Puzzle(2019, 16).answers)

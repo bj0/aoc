@@ -3,6 +3,7 @@ from time import perf_counter
 import intcode
 import trio
 from aocd import data
+from aocd.models import Puzzle
 
 
 async def run(memory, input=None):
@@ -42,7 +43,7 @@ async def check(y, memory):
     return None
 
 
-async def main():
+async def amain():
     memory = intcode.init(data.strip().split(','))
 
     t = perf_counter()
@@ -56,7 +57,8 @@ async def main():
     for y in range(50):
         print(''.join(pts[(x, y)] for x in range(50)))
 
-    print(sum(1 for k in pts if pts[k] == '#'))
+    part_a = sum(1 for k in pts if pts[k] == '#')
+    print(f'part 1: {part_a}')
 
     print(f'time: {perf_counter() - t:.2f}s')
     t = perf_counter()
@@ -75,7 +77,8 @@ async def main():
     y += 1
 
     # corner is at y-99
-    print(f'part 2: {x * 10000 + (y - 99)}')
+    part_b = x * 10000 + (y - 99)
+    print(f'part 2: {part_b}')
     # 8771057
     #
     # for r in range(y - 99, y + 1):
@@ -86,5 +89,13 @@ async def main():
 
     print(f'time: {perf_counter() - t:.2f}s')
 
+    return part_a, part_b
 
-trio.run(main)
+
+def main(*_):
+    return trio.run(amain)
+
+
+if __name__ == '__main__':
+    main()
+    print(Puzzle(2019, 19).answers)

@@ -2,6 +2,7 @@ import intcode
 import networkx as nx
 import trio
 from aocd import data
+from aocd.models import Puzzle
 
 _dir = {1: 1j, 2: -1j, 3: -1, 4: 1}
 _rev = {1: 2, 2: 1, 3: 4, 4: 3}
@@ -66,13 +67,14 @@ def print_map(map):
         print(''.join(_map[map.get(c - r * 1j, -1)] for c in range(cm, cx)))
 
 
-async def main():
+async def amain():
     memory = intcode.init(data.strip().split(','))
 
     map, o = await run(memory)
     print_map(map)
 
-    print(f'part 1: {nx.shortest_path_length(g, 0, o)}')
+    part_a = nx.shortest_path_length(g, 0, o)
+    print(f'part 1: {part_a}')
     # 226
 
     ox = {o}
@@ -89,6 +91,14 @@ async def main():
 
     print(f'part 2: {t}')
     # 342
+    return part_a, t
 
 
-trio.run(main)
+def main(*_):
+    return trio.run(amain)
+
+
+if __name__ == '__main__':
+    main()
+
+    print(Puzzle(2019, 15).answers)

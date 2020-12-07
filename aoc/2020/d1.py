@@ -40,6 +40,7 @@ a, b, c = part2(nums)
 print(f'part2 a={a}, b={b}, c={c}, {a + b + c}, {a * b * c}')
 
 # shorter
+nums = [int(x) for x in data.strip().split()]
 p1 = next(a * b for (a, b) in combinations(nums, 2) if a + b == 2020)
 p2 = next(a * b * c for (a, b, c) in combinations(nums, 3) if a + b + c == 2020)
 print(f'p1={p1}, p2={p2}')

@@ -29,13 +29,21 @@ def doublewrap(f):
     return new_dec
 
 
-@doublewrap
+# @doublewrap
 def perf(f):
+    """print a line showing how long it took this function to run"""
+
+    def fmt(num):
+        for tol, f, suf in ((1, 1, 's'), (1e-3, 1e3, 'ms'), (1e-6, 1e6, '\xb5s')):
+            if num > tol:
+                return f'{num * f:.3g}{suf}'
+        return f'{num:.1e}s'
+
     @wraps(f)
     def wrap(*args, **kwargs):
         t = perf_counter()
         ret = f(*args, **kwargs)
-        print(f'{f.__name__} took {perf_counter() - t:.2f}s')
+        print(f'<{f.__name__}> took {fmt(perf_counter() - t)}')
         return ret
 
     return wrap

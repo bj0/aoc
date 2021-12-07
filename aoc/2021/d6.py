@@ -27,10 +27,8 @@ def main():
 
     # data = """3,4,3,1,2"""
 
-    ages = parse_input(data)
-
-    print(f'part 1: {check(deque(ages), 80)}')
-    print(f'part 2: {check(ages, 256)}')
+    print(f'part 1: {check(parse_input(data), 80)}')
+    print(f'part 2: {check(parse_input(data), 256)}')
 
 
 if __name__ == '__main__':

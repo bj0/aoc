@@ -1,4 +1,7 @@
 # i attempted to dedup the codes but it turns out they don't repeat
+# original solve built the list, but their size doubles every time, so before 40 iterations you have gigs of string
+#
+# then i switched to just counting insertion spots with a dict and it runs in linear time with a small dict.
 
 from collections import Counter
 

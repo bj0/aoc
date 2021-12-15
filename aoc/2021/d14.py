@@ -1,6 +1,6 @@
 # i attempted to dedup the codes but it turns out they don't repeat
 
-from collections import Counter, deque
+from collections import Counter
 
 
 def parse_input(data):
@@ -10,70 +10,17 @@ def parse_input(data):
     return code, rules
 
 
-def check_dup(code, dup):
-    idx = []
-    s = code.find(dup)
-    while s != -1:
-        idx += (s + 1, dup[1:-1])
-        code = code[:i] + code[i + len(dup) - 2:]
-        s = code.find(dup, s + 2)
-
-    return idx, code
-
-
 def process(code, rules):
     idx = []
 
     for key, val in rules.items():
         idx += [(i + 1, val) for i in range(len(code)) if code.startswith(key, i)]
-    print('s', len(idx))
     num = 0
     for i, val in sorted(idx):
         code = code[:i + num] + val + code[i + num:]
         num += 1
     return code
 
-
-#
-# def deduped(code, rules, dups):
-#     chunks = [code]
-#     for dup in reversed(sorted(dups, key=len)):
-#         new = []
-#         for chunk in chunks:
-#             if chunk in dups:
-#                 continue
-#             head, *rest = chunk.split(dup)
-#             new.append([head, *(dup + z for z in ([dup, x] for x in rest))])
-#             if dup in chunk:
-#                 print('wtf',chunk,dup, head, rest, dup in chunk)
-#                 print('new',new)
-#         chunks = [c for sub in new for c in sub]
-#
-#     new = ''
-#     # print('ck',chunks)
-#     for chunk in chunks:
-#         if chunk in dups:
-#             new += dups[chunk]
-#         else:
-#             new += process(chunk, rules)
-#
-#     return new
-
-
-# def process(code, rules, dupes):
-#     dcode = deque(code)
-#     idx = sorted((i + 1, val)
-#                  for key, val in rules.items()
-#                  for i in range(len(code) - 1) if code[i] == key[0] and code[i + 1] == key[1]
-#                  )
-#
-#     num = 0
-#     for i, val in idx:
-#         dcode.insert(i + num, val)
-#         # print('wtf', ''.join(dcode), val, i)
-#         num += 1
-#
-#     return ''.join(dcode)
 
 def step(code, map):
     new = {}
@@ -84,84 +31,65 @@ def step(code, map):
 
 
 def count(code, ends):
+    # 3 diff ways, with for loop, with walrus trick, with reduce
     ctr = {}
+    # [ctr := {**ctr, c: ctr.get(c, 0) + v} for k, v in code.items() for c in k]
+    # ctr = reduce(lambda d, x: {**d, x[0]: x[1] + d.get(x[0], 0)}, ((c, v) for k, v in code.items() for c in k), {})
     for k, v in code.items():
         for c in k:
             ctr[c] = ctr.get(c, 0) + v
 
-    return {c: (v - 1) // 2 + 1 if c in ends else (v // 2)
-            for c, v in ctr.items()}
+    return Counter({c: (v - 1) // 2 + 1 if c in ends else (v // 2)
+                    for c, v in ctr.items()})
 
 
-def _solve(code, ends, map, n=10):
-    """first attempt"""
-    t = perf_counter()
+def _solve(code, rules, n=10):
+    """first attempt, doesn't work for part 2"""
     # 10 for p1
     for i in range(n):
-        print(i)
         code = process(code, rules)
         ctr = Counter(code)
         max, *_, min = ctr.most_common()
-        print(max,min, max[1]-min[1])
-        # dupes[code] = process(code, rules)
-        # dupes[code] = deduped(code, rules, dupes)
-        # code = dupes[code]
-        # print(code, len(code))
-
-    print(sum(((k[0]+v) in rules) + ((k[1]+v) in rules) for k,v in rules.items()))
-    print(len(rules))
 
     ctr = Counter(code)
     max, *_, min = ctr.most_common()
-    print(f'part 1: {max[1] - min[1]} {perf_counter() - t:.2}s')
+    return max[1] - min[1], ctr
+
+
+def solve(code, rules, n=10):
+    """keep track of counts instead of building giant strings"""
+
+    # map rule codes back to rules
+    map = {c: (f'{c[0]}{v}', f'{v}{c[1]}') for c, v in rules.items()}
+    # ends aren't double counted
+    ends = code[0] + code[-1]
+    # format code to counts
+    c = {}
+    for k in (code[i:i + 2] for i in range(len(code) - 1)):
+        c[k] = c.get(k, 0) + 1
+    code = c
+
+    for i in range(n):
+        code = step(code, map)
+    ctr = count(code, ends)
+
+    max, *_, min = ctr.most_common()
+    return max[1] - min[1], ctr
+
 
 def main(data):
     code, rules = parse_input(data)
     from time import perf_counter
 
-    map = {c: (f'{c[0]}{v}', f'{v}{c[1]}') for c, v in rules.items()}
-    # print(map)
-    ends = code[0] + code[-1]
-    code = {code[i:i + 2]: 1 for i in range(len(code) - 1)}
-    # print(code)
+    t = perf_counter()
+    f, _ = _solve(code, rules)
+    print(f'part 1: {f} {perf_counter() - t:.2}s')
 
     t = perf_counter()
+    f, c = solve(code, rules, 40)
+    print(f'part 2: {f} {perf_counter() - t:.2}s')
 
-    for i in range(10):
-        code = step(code, map)
-    # print(code)
-    ctr = Counter(count(code,ends))
-
-
-    # t = perf_counter()
-    # # 10 for p1
-    # for i in range(10):
-    #     print(i)
-    #     code = process(code, rules)
-    #     ctr = Counter(code)
-    #     max, *_, min = ctr.most_common()
-    #     print(max,min, max[1]-min[1])
-    #     # dupes[code] = process(code, rules)
-    #     # dupes[code] = deduped(code, rules, dupes)
-    #     # code = dupes[code]
-    #     # print(code, len(code))
-    #
-    # print(sum(((k[0]+v) in rules) + ((k[1]+v) in rules) for k,v in rules.items()))
-    # print(len(rules))
-    #
-    # ctr = Counter(code)
-    max, *_, min = ctr.most_common()
-    print(f'part 1: {max[1] - min[1]} {perf_counter() - t:.2}s')
-
-    # 40 for p2
-    # for i in range(40 - 10):
-    #     print(i)
-    #     dupes[code] = process(code, rules, dupes)
-    #     code = dupes[code]
-    #
-    # ctr = Counter(code)
-    # max, *_, min = ctr.most_common()
-    # print(f'part 2: {max[1] - min[1]}')
+    # not 4105415017404
 
 
 if __name__ == '__main__':
@@ -186,5 +114,5 @@ BC -> B
 CC -> N
 CN -> C"""
 
-    # main(data)
-    main(test_data)
+    main(data)
+    # main(test_data)

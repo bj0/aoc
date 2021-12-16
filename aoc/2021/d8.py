@@ -1,3 +1,21 @@
+# alternate solution could be to just use the counts segment uses in 1-10, eliminates
+# the need for custom logic
+# todo?
+# the counts are:
+# sums = {
+#         42: "0",
+#         17: "1",
+#         34: "2",
+#         39: "3",
+#         30: "4",
+#         37: "5",
+#         41: "6",
+#         25: "7",
+#         49: "8",
+#         45: "9",
+#     }
+
+
 from collections import Counter
 
 _digits = {
@@ -88,3 +106,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

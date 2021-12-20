@@ -53,7 +53,7 @@ def split(tree, boom=False):
         return tree, boom
     if isinstance(tree, int):
         if tree >= 10:
-            return [tree // 2, tree // 2 + (1 if (tree % 2) else 0)], True
+            return [tree // 2, tree - (tree // 2)], True
         return tree, boom
     a, b = tree
     a, boom = split(a, boom)

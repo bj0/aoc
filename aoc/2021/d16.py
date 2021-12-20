@@ -39,6 +39,12 @@ class Packet:
             return [self, *(s for kid in self.kids for s in kid.flatten())]
 
 
+def parse_input(data):
+    packet = bin(int(data, 16))[2:]
+    L = len(packet)
+    return packet.zfill(L + ((-L) % 4))
+
+
 def parse_packet(packet):
     ver, type = packet[:3], packet[3:6]
     packet = packet[6:]
@@ -73,9 +79,7 @@ def parse_packet(packet):
 
 
 def part1(data):
-    packet = bin(int(data, 16))[2:]
-    L = len(packet)
-    packet = packet.zfill(L + ((-L) % 4))
+    packet = parse_input(data)
 
     p, _ = parse_packet(packet)
 
@@ -83,9 +87,7 @@ def part1(data):
 
 
 def part2(data):
-    packet = bin(int(data, 16))[2:]
-    L = len(packet)
-    packet = packet.zfill(L + ((-L) % 4))
+    packet = parse_input(data)
 
     p, _ = parse_packet(packet)
 

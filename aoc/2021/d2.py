@@ -1,13 +1,17 @@
 from aocd import data
 
+from aoc.util import perf
+
 steps = [(d, int(x)) for (d, x) in (line.split() for line in data.strip().split('\n'))]
 map = dict(forward=1, down=1j, up=-1j)
 
 
+@perf
 def part1(steps):
     return sum(map[d] * x for (d, x) in steps)
 
 
+@perf
 def part2(steps):
     a = 0
     pos = 0

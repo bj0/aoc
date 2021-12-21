@@ -1,5 +1,7 @@
 from aocd import data
 
+from aoc.util import perf
+
 
 def parse_input(data):
     """parse input into list of draw numbers and 3d array of boards"""
@@ -51,6 +53,7 @@ def find_last_match(nums, boards):
     return [m for m in matcher(nums, boards)][-1]
 
 
+@perf
 def find(nums, boards, matcher):
     board, nums = matcher(nums, boards)
 

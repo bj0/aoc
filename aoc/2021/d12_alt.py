@@ -1,5 +1,7 @@
 import networkx as nx
 
+from aoc.util import perf
+
 test_data = """start-A
 start-b
 A-c
@@ -11,6 +13,7 @@ b-end"""
 from aocd import data
 
 
+@perf
 def solve(data, double_visit=False):
     G = nx.Graph()
     for line in data.splitlines():

@@ -5,6 +5,8 @@
 
 from collections import Counter
 
+from aoc.util import perf
+
 
 def parse_input(data):
     code, rules = data.split('\n\n')
@@ -46,6 +48,7 @@ def count(code, ends):
                     for c, v in ctr.items()})
 
 
+@perf
 def _solve(code, rules, n=10):
     """first attempt, doesn't work for part 2"""
     # 10 for p1
@@ -59,6 +62,7 @@ def _solve(code, rules, n=10):
     return max[1] - min[1], ctr
 
 
+@perf
 def solve(code, rules, n=10):
     """keep track of counts instead of building giant strings"""
 
@@ -82,15 +86,12 @@ def solve(code, rules, n=10):
 
 def main(data):
     code, rules = parse_input(data)
-    from time import perf_counter
 
-    t = perf_counter()
     f, _ = _solve(code, rules)
-    print(f'part 1: {f} {perf_counter() - t:.2}s')
+    print(f'part 1: {f}')
 
-    t = perf_counter()
     f, c = solve(code, rules, 40)
-    print(f'part 2: {f} {perf_counter() - t:.2}s')
+    print(f'part 2: {f}')
 
     # not 4105415017404
 

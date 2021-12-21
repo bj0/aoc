@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from math import prod
 
+from aoc.util import perf
+
 _ops = {
     '000': sum,
     '001': prod,
@@ -78,6 +80,7 @@ def parse_packet(packet):
             return Packet(ver, type=type, kids=kids), rest
 
 
+@perf
 def part1(data):
     packet = parse_input(data)
 
@@ -86,6 +89,7 @@ def part1(data):
     return sum(p.version() for p in parse_packet(packet)[0].flatten())
 
 
+@perf
 def part2(data):
     packet = parse_input(data)
 

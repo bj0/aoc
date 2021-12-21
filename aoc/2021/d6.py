@@ -2,6 +2,8 @@
 # "exponential" problem linear
 from collections import deque, Counter
 
+from aoc.util import perf
+
 
 def parse_input(data):
     c = Counter(data.strip().split(','))
@@ -15,6 +17,7 @@ def age(ages: deque):
     return ages
 
 
+@perf
 def check(ages, days):
     for d in range(days):
         ages = age(ages)

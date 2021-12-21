@@ -16,7 +16,10 @@ from aocd import data
 # 11001
 # 00010
 # 01010"""
+from aoc.util import perf
 
+
+@perf
 def part1(data):
     lines = data.strip().split()
     counters = [Counter(line[i] for line in lines) for i in range(len(lines[0]))]
@@ -26,6 +29,7 @@ def part1(data):
     return int(gam, 2) * int(eps, 2), gam, eps
 
 
+@perf
 def part2(data):
     lines = data.strip().split()
     i = 0

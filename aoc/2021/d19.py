@@ -2,11 +2,15 @@
 # but i think this is too complicated and requires too many calcs
 #
 # maybe just assume 2 points match and calc the transform and then check to see if at least 12 overlap?
+# first try takes a long time, ~8 minutes
+# second try shaved about 20s off...
+# got it down to ~ 5:20...
+# could prob reduce it by pre-filtering by an invariant like mdist and then only checking all combinations after that
 from collections import deque
 from itertools import combinations, permutations, product
 from math import prod
 
-from aoc.util import perf
+from aoc.util import perf, mdist
 
 
 def parse_input(data):
@@ -39,41 +43,41 @@ def check_for_match(abeacons, bbeacons):
 @perf
 def part1(scanners):
     done, *waiting = scanners.items()
-    tbeacons = done[1]
-    done = (done,)
+    beacons = done[1]
     waiting = deque(waiting)
-    checked = set()
+    scanners = set()
     while waiting:
-        other, obeacons = waiting.popleft()
-        for scanner, beacons in done:
-            if {scanner,other} in checked:
-                print(f'skip {scanner}->{other}')
-                continue
-            checked.add(frozenset([scanner, other]))
-            print(f'trying {scanner}->{other}')
-            ret = check_for_match(beacons, obeacons)
-            if ret:
-                T, xs, xi, shifted = ret
-                print(f'{scanner} matched {other}: {xs, xi, T, len(shifted)}')
-                tbeacons |= shifted
-                done = (*done, (other, shifted))
-                # done = ((other, shifted), *done)
-                break
+        other, other_beacons = waiting.popleft()
+        print(f'trying ->{other}')
+        ret = check_for_match(beacons, other_beacons)
+        if ret:
+            T, xs, xi, shifted = ret
+            print(f' matched {other}: {xs, xi, T, len(shifted)}')
+            beacons |= shifted
+            scanners.add(T)
+            continue
         else:
-            # no match
-            waiting.append((other, obeacons))
+            waiting.append((other, other_beacons))
+    return beacons, scanners
 
-    print(f'part 1:{len(tbeacons)}')
+
+@perf
+def part2(scanners):
+    return max(mdist(a, b) for (a, b) in combinations(scanners, 2))
 
 
 def main(data):
     scanners = parse_input(data)
 
-    part1(scanners)
+    beacons, scanners = part1(scanners)
+    print(f'part 1:{len(beacons)}')
+    mx = part2(scanners)
+    print(f'part 2:{mx}')
 
 
 if __name__ == '__main__':
     from aocd import data
+
     main(data)
 
     test_data = """--- scanner 0 ---

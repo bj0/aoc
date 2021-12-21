@@ -1,36 +1,80 @@
-from itertools import combinations
+# i first tried to come up with an invariant i could calculate to identify matching groups of points despite coordinate system
+# but i think this is too complicated and requires too many calcs
+#
+# maybe just assume 2 points match and calc the transform and then check to see if at least 12 overlap?
+from collections import deque
+from itertools import combinations, permutations, product
 from math import prod
 
-from aoc.util import mdist
+from aoc.util import perf
 
 
 def parse_input(data):
-    return {block.splitlines()[0]: [tuple(int(x) for x in line.split(','))
-                                    for line in block.splitlines()[1:]]
+    return {block.splitlines()[0]: set(tuple(int(x) for x in line.split(','))
+                                       for line in block.splitlines()[1:])
             for block in data.split('\n\n')}
 
 
-def sigs(beacons):
-    return {frozenset(grp): prod(mdist(a, b) for a, b in combinations(grp, 2))
-            for grp in combinations(beacons, 4)}
+def remap(xs, xi, c):
+    return tuple(c[i] * s for (i, s) in zip(xi, xs))
+
+
+def shift(T, c):
+    return tuple(t + cc for (t, cc) in zip(T, c))
+
+
+def check_for_match(abeacons, bbeacons):
+    for a in abeacons:
+        for xs in product((1, -1), repeat=3):
+            for xi in permutations((0, 1, 2), 3):
+                obs = {remap(xs, xi, x) for x in bbeacons}
+                for b in obs:
+                    T = tuple(ac - bc for (bc, ac) in zip(b, a))
+                    shifted = {shift(T, ob) for ob in obs}
+                    if len(abeacons & shifted) >= 12:
+                        # found a match!
+                        return T, xs, xi, shifted
+
+
+@perf
+def part1(scanners):
+    done, *waiting = scanners.items()
+    tbeacons = done[1]
+    done = (done,)
+    waiting = deque(waiting)
+    checked = set()
+    while waiting:
+        other, obeacons = waiting.popleft()
+        for scanner, beacons in done:
+            if {scanner,other} in checked:
+                print(f'skip {scanner}->{other}')
+                continue
+            checked.add(frozenset([scanner, other]))
+            print(f'trying {scanner}->{other}')
+            ret = check_for_match(beacons, obeacons)
+            if ret:
+                T, xs, xi, shifted = ret
+                print(f'{scanner} matched {other}: {xs, xi, T, len(shifted)}')
+                tbeacons |= shifted
+                done = (*done, (other, shifted))
+                # done = ((other, shifted), *done)
+                break
+        else:
+            # no match
+            waiting.append((other, obeacons))
+
+    print(f'part 1:{len(tbeacons)}')
 
 
 def main(data):
     scanners = parse_input(data)
 
-    for s, b in scanners.items():
-        s = sigs(b)
-        print(len(s),len(set(s.values())))
-    # for a, b in combinations(scanners, 2):
-    #     sa, sb = sigs(scanners[a]), sigs(scanners[b])
-    #     s = [(a,b) for a, b in zip(sa, sb) if sa[a]]
-    #     if len(s) > 12:
-    #         print(f'match for {a} & {b}: {len(s)}')
+    part1(scanners)
 
 
 if __name__ == '__main__':
-    # from aocd import data
-    # main(data)
+    from aocd import data
+    main(data)
 
     test_data = """--- scanner 0 ---
 404,-588,-901
@@ -170,105 +214,3 @@ if __name__ == '__main__':
 30,-46,-14"""
 
     main(test_data)
-#
-#     sa = """404,-588,-901
-# 528,-643,409
-# -838,591,734
-# 390,-675,-793
-# -537,-823,-458
-# -485,-357,347
-# -345,-311,381
-# -661,-816,-575
-# -876,649,763
-# -618,-824,-621
-# 553,345,-567
-# 474,580,667
-# -447,-329,318
-# -584,868,-557
-# 544,-627,-890
-# 564,392,-477
-# 455,729,728
-# -892,524,684
-# -689,845,-530
-# 423,-701,434
-# 7,-33,-71
-# 630,319,-379
-# 443,580,662
-# -789,900,-551
-# 459,-707,401"""
-#
-#     sb = """649,640,665
-# 682,-795,504
-# -784,533,-524
-# -644,584,-595
-# -588,-843,648
-# -30,6,44
-# -674,560,763
-# 500,723,-460
-# 609,671,-379
-# -555,-800,653
-# -675,-892,-343
-# 697,-426,-610
-# 578,704,681
-# 493,664,-388
-# -671,-858,530
-# -667,343,800
-# 571,-461,-707
-# -138,-166,112
-# -889,563,-600
-# 646,-828,498
-# 640,759,510
-# -630,509,768
-# -681,-892,-333
-# 673,-379,-804
-# -742,-814,-386
-# 577,-820,562"""
-#
-#     sc = """686,422,578
-# 605,423,415
-# 515,917,-361
-# -336,658,858
-# 95,138,22
-# -476,619,847
-# -340,-569,-846
-# 567,-361,727
-# -460,603,-452
-# 669,-402,600
-# 729,430,532
-# -500,-761,534
-# -322,571,750
-# -466,-666,-811
-# -429,-592,574
-# -355,545,-477
-# 703,-491,-529
-# -328,-685,520
-# 413,935,-424
-# -391,539,-444
-# 586,-435,557
-# -364,-763,-893
-# 807,-499,-711
-# 755,-354,-619
-# 553,889,-390"""
-#
-#     l = [[int(x) for x in c.split(',')]
-#          for c in sa.splitlines()]
-#
-#     s = {''.join(str(x) for x in sorted(mdist(a, b)
-#                                         for a, b in combinations(cs, 2)))
-#          for cs in combinations(l, 3)}
-#
-#     l = [[int(x) for x in c.split(',')]
-#          for c in sb.splitlines()]
-#
-#     s2 = {''.join(str(x) for x in sorted(mdist(a, b)
-#                                          for a, b in combinations(cs, 2)))
-#           for cs in combinations(l, 3)}
-#
-#     l = [[int(x) for x in c.split(',')]
-#          for c in sc.splitlines()]
-#
-#     s3 = {''.join(str(x) for x in sorted(mdist(a, b)
-#                                          for a, b in combinations(cs, 2)))
-#           for cs in combinations(l, 3)}
-#
-#     print(len(s), len(s2), len(s & s2), len(s & s3), len(s2 & s3))

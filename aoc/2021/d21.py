@@ -1,3 +1,6 @@
+# while this works and is very fast, some people noticed that there are a (very small) finite number of possible inputs
+# and you don't need caching if you just figure them out and check them.  caching is the lazy way though.
+
 from functools import reduce, lru_cache
 from itertools import count, product
 

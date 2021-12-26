@@ -1,7 +1,7 @@
 # without caching takes forever
+# got it down from 20+ minutes to 4s!
 
-from dataclasses import dataclass, replace
-from functools import lru_cache, wraps
+from itertools import cycle
 
 from aoc.util import perf
 
@@ -9,92 +9,88 @@ _cost = dict(A=1, B=10, C=100, D=1000)
 _doors = dict(A=2, B=4, C=6, D=8)
 
 
-@dataclass
-class Amp:
-    type: str
-
-
 def parse_input(data):
-    map = {(i, 0): '.' for i in range(11)}
+    map = {'h': '.' * 11}
     chars = (c for c in data if c in 'ABCD')
-    for i, c in zip((2, 4, 6, 8), chars):
-        map[(i, 1)] = c
-    for i, c in zip((2, 4, 6, 8), chars):
-        map[(i, 2)] = c
+    for h, c in zip(cycle('ABCD'), chars):
+        map[h] = map.get(h, '') + c
 
     return map
 
 
-def open(map, c):
+def is_open(home, c):
+    return len(home) == 0 or all(i == c for i in home)
+
+
+def is_full(map, c):
+    return c not in map['h'] and all(i == c for i in map[c])
+
+
+def can_reach_home(hall, pos):
+    c = hall[pos]
     x = _doors[c]
-    return all(i in ['.', c] for i in (map[(x, j)] for j in (1, 2)))
+    dir = 1 if x > pos else -1
+    return all(i == '.' for i in hall[pos + dir:x:dir])
 
 
-def full(map, c):
-    x = _doors[c]
-    return all(i == c for i in (map[(x, j)] for j in (1, 2)))
+def moves(hall, pos):
+    p = pos - 1
+    # print(p,hall)
+    while p >= 0 and hall[p] == '.':
+        if p not in _doors.values():
+            yield p
+        p -= 1
+
+    p = pos + 1
+    while p < 11 and hall[p] == '.':
+        if p not in _doors.values():
+            yield p
+        p += 1
 
 
-def is_stuck(map, pos):
-    return pos[1] == 2 and map[(pos[0], 1)] != '.'
+def _hash(map):
+    return ';'.join(''.join(x) for x in (map[i] for i in 'hABCD'))
 
 
-def can_reach_home(map, pos):
-    c = map[pos]
-    x = _doors[c]
-    dir = 1 if x > pos[0] else -1
-    return all(i == '.' for i in (map[(j, 0)] for j in range(pos[0] + dir, x, dir)))
-
-
-def is_home(map, pos):
-    c = map[pos]
-    x = _doors[c]
-    return pos[0] == x and map[(x, 2)] == c
-
-
-def moves(map, pos):
-    if is_home(map, pos) or is_stuck(map, pos):
-        return
-    c = map[pos]
-    if pos[1] == 0:  # isle
-        if open(map, c) and can_reach_home(map, pos):
-            x = _doors[c]
-            yield x, 2 if map[(x, 2)] == '.' else 1
-    else:  # move to isle
-        p = pos[0] - 1, 0
-        while p[0] >= 0 and map[p] == '.':
-            if p[0] not in _doors.values():
-                yield p
-            p = (p[0] - 1, 0)
-
-        p = pos[0] + 1, 0
-        while p[0] < 11 and map[p] == '.':
-            if p[0] not in _doors.values():
-                yield p
-            p = (p[0] + 1, 0)
-
-
-def solve(map, total=0, limit=1e9, seen=None):
-    if all(full(map, c) for c in 'ABCD'):  # done
+def solve(map, total=0, limit=1e9, seen=None, D=2):
+    if all(is_full(map, c) for c in 'ABCD'):  # done
+        # print('dun', total, limit)
+        # print(map)
         return total
 
-    seen = seen if seen is not None else set()
+    seen = seen if seen is not None else {}
+    hall = map['h']
+    for i, c in enumerate(hall):
+        if c != '.' and is_open(home := map[c], c) and can_reach_home(hall, i):
+            cost = abs(_doors[c] - i) + D - len(home)
+            cost *= _cost[c]
+            if total + cost > limit:
+                continue
+            new_map = {**map, 'h': hall[:i] + '.' + hall[i + 1:], c: [c] + home}
+            sig = _hash(new_map)
+            if sig in seen and seen[sig] <= total:
+                continue
+            seen[sig] = total
+            limit = solve(
+                new_map,
+                total + cost, limit, seen, D=D)
 
-    for p, c in map.items():
-        if c in 'ABCD':
-            for move in moves(map, p):
-                cost = abs(move[0] - p[0]) + p[1] + move[1]
+    for x, home in ((i, map[i]) for i in 'ABCD'):
+        if not is_open(home, x):
+            for move in moves(hall, _doors[x]):
+                c, *rest = home
+                cost = abs(move - _doors[x]) + D - len(rest)
                 cost *= _cost[c]
-                if total + cost >= limit:
+                if total + cost > limit:
                     continue
-                new_map = {**map, p: '.', move: c}
-                sig = total, hash(frozenset(new_map.items()))
-                if sig in seen: continue
-                seen.add(sig)
+                new_map = {**map, 'h': hall[:move] + c + hall[move + 1:], x: rest}
+                sig = _hash(new_map)
+                if sig in seen and seen[sig] <= total:
+                    continue
+                seen[sig] = total
                 limit = solve(
                     new_map,
-                    total + cost, limit, seen)
-
+                    total + cost, limit, seen, D=D)
     return limit
 
 
@@ -102,27 +98,42 @@ def solve(map, total=0, limit=1e9, seen=None):
 def part1(map):
     return solve(map)
 
+@perf
+def part2(map):
+    return solve(map, D=4)
 
-def main(data):
-    map = parse_input(data)
+
+def main():
+    # part 1
+    map = parse_input("""#############
+    #...........#
+    ###C#A#B#D###
+      #D#C#A#B#
+      #########
+    """)
 
     print(f'part 1: {part1(map)}')
 
-
-if __name__ == '__main__':
-    # from aocd import data
-
-    # main(data)
-
-    main("""#############
+    # part 2
+    map = parse_input("""#############
 #...........#
 ###C#A#B#D###
+  #D#C#B#A#
+  #D#B#A#C#
   #D#C#A#B#
   #########
 """)
-
-#     main("""#############
+#     map = parse_input("""#############
 # #...........#
 # ###B#C#B#D###
+#   #D#C#B#A#
+#   #D#B#A#C#
 #   #A#D#C#A#
-#   #########""")
+#   #########
+# """)
+
+    print(f'part 2: {part2(map)}')
+
+
+if __name__ == '__main__':
+    main()

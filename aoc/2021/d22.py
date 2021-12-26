@@ -53,7 +53,7 @@ def main(data):
     core = part1(ops, blocks)
     print(f'part 1: {sum(1 for p in core if core[p])}')
 
-    core = part2(ops, blocks)
+    core = part2(ops, blocks) #todo not finished
     print(f'part 2: {sum(1 for p in core if core[p])}')
 
 

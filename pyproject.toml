@@ -7,7 +7,7 @@ authors = ["Brian Parma <execrable@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.9"
 advent-of-code-data = "^0.8.5"
-numpy = "^1.19.4"
+numpy = "^1.22.0"
 trio = "^0.17.0"
 networkx = "^2.5"
 

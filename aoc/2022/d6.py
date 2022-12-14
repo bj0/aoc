@@ -1,27 +1,24 @@
+from collections import deque
+
 from aocd import data
 
 from aoc.util import perf
 
-puz = []
+puz = data
 
 
 @perf
-def part1(puz):
-    pass
+def find(puz, n=4):
+    mark = deque(puz[:n], maxlen=n)
+    if len(set(mark)) == n: return n
+    for i, c in enumerate(puz[n:]):
+        mark.append(c)
+        if len(set(mark)) == n:
+            return i + n + 1
 
-# 560
-print(f'part1: {part1(puz)}')
 
+# 1779
+print(f'part1: {find(puz)}')
 
-# @perf
-# def part2(puz):
-#     def excludes(r0, r1):
-#         a, b = r0
-#         x, y = r1
-#         return a > y or b < x
-#
-#     return sum(not excludes(a, b) for (a, b) in puz)
-#
-#
-# # 2581
-# print(f'part2 {part2(puz)}')
+# 2635
+print(f'part2: {find(puz, 14)}')

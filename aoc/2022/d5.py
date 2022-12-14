@@ -1,34 +1,45 @@
+from collections import deque
+
 from aocd import data
 
 from aoc.util import perf
 
-puz = [[tuple(map(int, r.split('-'))) for r in line.split(',')]
-       for line in data.split('\n')]
+layout, steps = data.split('\n\n')
+
+layout = [row for row in layout.split('\n')]
+
+stacks = [deque() for i in range(9)]
+for row in reversed(layout[:-1]):
+    for i, c in enumerate(row[1::4]):
+        if c != ' ':
+            stacks[i].append(c)
 
 
 @perf
-def part1(puz):
-    def contains(r0, r1):
-        a, b = r0
-        x, y = r1
-        return (a <= x and y <= b) or (x <= a and b <= y)
+def part1(stacks, steps):
+    for step in steps.split('\n'):
+        step = step.split(' ')
+        n, frm, to = (int(step[i]) for i in (1, 3, 5))
+        for x in [stacks[frm - 1].pop() for i in range(n)]:
+            stacks[to - 1].append(x)
 
-    return sum(contains(a, b) for (a, b) in puz)
+    return ''.join(x[-1] for x in stacks)
 
 
-# 560
-print(f'part1: {part1(puz)}')
+# VCTFTJQCG
+print(f'part1: {part1([deque(s) for s in stacks], steps)}')
 
 
 @perf
-def part2(puz):
-    def excludes(r0, r1):
-        a, b = r0
-        x, y = r1
-        return a > y or b < x
+def part2(stacks, steps):
+    for step in steps.split('\n'):
+        step = step.split(' ')
+        n, frm, to = (int(step[i]) for i in (1, 3, 5))
+        for x in reversed([stacks[frm - 1].pop() for i in range(n)]):
+            stacks[to - 1].append(x)
 
-    return sum(not excludes(a, b) for (a, b) in puz)
+    return ''.join(x[-1] for x in stacks)
 
 
-# 2581
-print(f'part2 {part2(puz)}')
+# GCFGLDNJZ
+print(f'part2 {part2(stacks, steps)}')

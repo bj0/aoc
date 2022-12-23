@@ -1,8 +1,8 @@
-from itertools import takewhile, count
+from functools import reduce
+from itertools import count
+from operator import mul
 
 from aocd import data
-from functools import reduce
-from operator import mul
 
 from aoc.util import perf
 

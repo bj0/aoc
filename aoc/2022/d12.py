@@ -1,19 +1,13 @@
-from dataclasses import dataclass
-from functools import reduce
-from operator import mul, add
-from typing import Callable
-
+import networkx as nx
 from aocd import data
 
 from aoc.util import perf
 
-import networkx as nx
-
-data = """Sabqponm
-abcryxxl
-accszExk
-acctuvwj
-abdefghi"""
+# data = """Sabqponm
+# abcryxxl
+# accszExk
+# acctuvwj
+# abdefghi"""
 
 grid = [row[:] for row in data.split('\n')]
 g = nx.DiGraph()
@@ -48,12 +42,23 @@ def part1(mgrid, g):
     return nx.shortest_path_length(g, start, end)
 
 
-# 120756
+#
 print(f'part1: {part1(mgrid, g)}')
 
-# @perf
-# def part2(puz):
+
+def try_get_path(g, start, end):
+    try:
+        return nx.shortest_path_length(g, start, end)
+    except:
+        return 1000
+
+
+@perf
+def part2(mgrid, g):
+    starts = [pos for pos in mgrid if mgrid[pos] in 'aS']
+    end = next(p for p in mgrid if mgrid[p] == 'E')
+    return min(try_get_path(g, start, end) for start in starts)
+
+
 #
-#
-# # 39109444654
-# print(f'part2: {part2(data)}')
+print(f'part2: {part2(mgrid, g)}')

@@ -70,7 +70,7 @@ def part2(g, dists):
     return max(
         walk_paths("AA", 0, frozenset(valves), T=26)
         + walk_paths("AA", 0, nodes - set(valves), T=26)
-        for i in range(2, len(g.nodes) // 2)
+        for i in range(2, len(nodes) // 2)
         for valves in combinations(nodes, i)
     )
 

@@ -4,16 +4,17 @@ version = "0.1.0"
 description = ""
 authors = ["Brian Parma <execrable@gmail.com>"]
 
+[virtualenvs]
+prefer-active-python=true
+
+
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 advent-of-code-data = "^0.8.5"
 numpy = "^1.22.0"
 trio = "^0.17.0"
 networkx = "^2.5"
-
-[tool.poetry.dev-dependencies]
-black = {version = "^20.8b1", allow-prereleases = true}
-pylama = "^7.7.1"
+setuptools = "^65.6.3"
 
 [tool.poetry.group.dev.dependencies]
 black = {version = "^23.1a1", allow-prereleases = true}

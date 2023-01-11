@@ -21,7 +21,7 @@ bps = [
 ]
 
 
-def best(bp, T):
+def make_geodes(bp, T):
     start = (T, [1, 0, 0, 0], [0, 0, 0, 0])
     q = deque([start])
     seen = set()
@@ -29,15 +29,22 @@ def best(bp, T):
     # max useful bots
     maxb = [max(r[i] for r in bp) for i in range(3)]
 
+    best = 0
     while q:
-        t, bots, res = q.pop()
+        t, bots, res = q.popleft()
         state = tuple([t, *bots, *res])
         if state in seen:
             continue
         seen.add(state)
 
         # no build
-        yield res[3] + bots[3] * t
+        geo = res[3] + bots[3] * t
+        if geo > best:
+            best = geo
+        else:
+            # trim dead ends
+            if 2 * best > (2 * geo + t * (t - 1)):
+                continue
 
         for bot, cost in enumerate(bp):
             if bot != 3 and bots[bot] >= maxb[bot]:
@@ -62,12 +69,18 @@ def best(bp, T):
                 for i in range(3):
                     newr[i] = min(newr[i], (maxb[i] - bots[i] + 1) * newt)
 
-                q.append((newt, newb, newr))
+                next = (newt, newb, newr)
+                if bot == 3:
+                    q.appendleft(next)
+                else:
+                    q.append(next)
+
+    return best
 
 
 @perf
 def part1():
-    return sum(max(best(bp, 24)) * (i + 1) for i, bp in enumerate(bps))
+    return sum(make_geodes(bp, 24) * (i + 1) for i, bp in enumerate(bps))
 
 
 # 1081
@@ -75,7 +88,7 @@ print(f"part1: {part1()}")
 
 
 def solv(x):
-    return max(best(x, 32))
+    return make_geodes(x, 32)
 
 
 @perf

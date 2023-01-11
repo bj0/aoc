@@ -1,14 +1,16 @@
 import re
 from collections import deque
-from functools import cache, lru_cache
+from functools import reduce
 from math import ceil
+from multiprocessing import Pool
+from operator import mul
 
 from aocd import data
 
 from aoc.util import perf
 
-data = """Blueprint 1:Each ore robot costs 4 ore.Each clay robot costs 2 ore.Each obsidian robot costs 3 ore and 14 clay.Each geode robot costs 2 ore and 7 obsidian.
-Blueprint 2:Each ore robot costs 2 ore.Each clay robot costs 3 ore.Each obsidian robot costs 3 ore and 8 clay.Each geode robot costs 3 ore and 12 obsidian."""
+# data = """Blueprint 1:Each ore robot costs 4 ore.Each clay robot costs 2 ore.Each obsidian robot costs 3 ore and 14 clay.Each geode robot costs 2 ore and 7 obsidian.
+# Blueprint 2:Each ore robot costs 2 ore.Each clay robot costs 3 ore.Each obsidian robot costs 3 ore and 8 clay.Each geode robot costs 3 ore and 12 obsidian."""
 
 bps = [re.findall(r"\d+", line) for line in data.split("\n")]
 
@@ -60,28 +62,28 @@ def best(bp, T):
                 for i in range(3):
                     newr[i] = min(newr[i], (maxb[i] - bots[i] + 1) * newt)
 
-                next = (newt, newb, newr)
-                # if bot == 3:
-                    # q.appendleft(next)
-                # else:
-                q.append(next)
+                q.append((newt, newb, newr))
 
 
 @perf
 def part1():
     return sum(max(best(bp, 24)) * (i + 1) for i, bp in enumerate(bps))
-    # f = best(bp)
-    # print(max(f))
 
 
 # 1081
 print(f"part1: {part1()}")
 
 
+def solv(x):
+    return max(best(x, 32))
+
+
 @perf
 def part2():
-    return tuple(max(best(bp, 32)) for i, bp in enumerate(bps[:3]))
+    with Pool(3) as p:
+        return p.map(solv, bps[:3])
+        # my solution produces 1 less than what is state on the page for the example, not sure if they're wrong or i am because it works with my input...
 
 
-#
-# print(f"part2: {part2()}")
+# 2415
+print(f"part2: {reduce(mul, part2())}")

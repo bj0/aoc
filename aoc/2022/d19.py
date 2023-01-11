@@ -13,69 +13,58 @@ Blueprint 2:Each ore robot costs 2 ore.Each clay robot costs 3 ore.Each obsidian
 bps = [re.findall(r"\d+", line) for line in data.split("\n")]
 
 bps = [
-    {
-        "ore": {"ore": int(a)},
-        "clay": {"ore": int(b)},
-        "obs": {"ore": int(c), "clay": int(d)},
-        "geo": {"ore": int(e), "obs": int(f)},
-    }
+    [[int(a), 0, 0], [int(b), 0, 0], [int(c), int(d), 0], [int(e), 0, int(f)]]
     for bp in bps
     for (a, b, c, d, e, f) in [bp[1:]]
 ]
 
-_keys = ["ore", "clay", "obs", "geo"]
-
 
 def best(bp, T):
-    q = deque([(0, {"ore": 1}, {})])
-    seen = {}
+    start = (T, [1, 0, 0, 0], [0, 0, 0, 0])
+    q = deque([start])
+    seen = set()
 
     # max useful bots
-    maxb = {k: max(r.get(k, 0) for r in bp.values()) for k in _keys if not k == "geo"}
-    maxb["geo"] = 1000
+    maxb = [max(r[i] for r in bp) for i in range(3)]
+
     while q:
         t, bots, res = q.pop()
-        if t >= T:
-            yield res["geo"]
+        state = tuple([t, *bots, *res])
+        if state in seen:
             continue
-        state = tuple(bots.get(x, 0) for x in _keys)
-        if seen.get(state, 100) < t:
-            continue
-        seen[state] = t
+        seen.add(state)
 
-        for r in bp:
-            if bots.get(r, 0) == maxb[r]:
+        # no build
+        yield res[3] + bots[3] * t
+
+        for bot, cost in enumerate(bp):
+            if bot != 3 and bots[bot] >= maxb[bot]:
                 # enough bots!
                 continue
 
-            cost = bp[r]
-            # can we even build this bot
-            if cost.keys() <= bots.keys():
-                # time till bot is complete
-                dt = (
-                    max(
-                        (
-                            ceil((cost[x] - res.get(x, 0)) / bots[x])
-                            for x in cost
-                            if cost[x] > res.get(x, 0)
-                        ),
-                        default=0,
-                    )
-                    + 1
-                )
-                if t + dt >= T:
-                    # takes too long
-                    yield res.get("geo", 0) + bots.get("geo", 0) * (T - t)
-                else:
-                    newr = {
-                        x: res.get(x, 0) + bots.get(x, 0) * dt - cost.get(x, 0)
-                        for x in bp
-                    }
-                    newq = (t + dt, {**bots, r: (bots.get(r, 0) + 1)}, newr)
-                    if r == "geo":
-                        q.appendleft(newq)
-                    else:
-                        q.append(newq)
+            dt = 0
+            for rt, ra in enumerate(cost):
+                if ra == 0:
+                    continue
+                if bots[rt] == 0:
+                    break
+                dt = max(dt, ceil((ra - res[rt]) / bots[rt]))
+            else:
+                newt = t - dt - 1
+                if newt < 0:
+                    continue
+                newb = bots[:]
+                newb[bot] += 1
+                newr = [x + y * (dt + 1) - c for x, y, c in zip(res, bots, cost + [0])]
+                # opt
+                for i in range(3):
+                    newr[i] = min(newr[i], (maxb[i] - bots[i] + 1) * newt)
+
+                next = (newt, newb, newr)
+                # if bot == 3:
+                    # q.appendleft(next)
+                # else:
+                q.append(next)
 
 
 @perf
@@ -91,8 +80,8 @@ print(f"part1: {part1()}")
 
 @perf
 def part2():
-    return sum(max(best(bp, 32)) * (i + 1) for i, bp in enumerate(bps[:3]))
+    return tuple(max(best(bp, 32)) for i, bp in enumerate(bps[:3]))
 
 
-# 
-print(f"part2: {part2()}")
+#
+# print(f"part2: {part2()}")

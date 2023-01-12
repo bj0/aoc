@@ -70,6 +70,7 @@ def make_geodes(bp, T):
                     newr[i] = min(newr[i], (maxb[i] - bots[i] + 1) * newt)
 
                 next = (newt, newb, newr)
+                # prioritize making geo bots
                 if bot == 3:
                     q.appendleft(next)
                 else:

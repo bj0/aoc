@@ -39,19 +39,20 @@ for j, line in enumerate(board):
     w = max(w, len(line))
     # print(j,line[:15])
     # if j == 163:
-        # print('wtf',j,line, len(line))
+    # print('wtf',j,line, len(line))
     for i, c in enumerate(line):
         i += 1
         # if i == 51 and j == 163:
-            # print('wtf',i,j,c)
-            # exit(1)
+        # print('wtf',i,j,c)
+        # exit(1)
         if c in ".#":
             bounds[i] = [min(bounds[i][0], j), max(bounds[i][1], j)]
             g[i + j * 1j] = c
 
 
 _DIR = {"R": 1j, "L": -1j}
-print(w,h)
+print(w, h)
+N = max(w, h) // 4
 
 
 def walk(p0, dir, n):
@@ -94,44 +95,84 @@ def part1(dirs):
 # 56372
 print(f"part1: {part1(dirs)}")
 
+
 def wrap(p, dir):
     c, r = p.real, p.imag
     match dir:
         case 1:
-            if r <= 50: # from ride side face to back face (y -> 150-y, x -> -x)
-                return ((150-r+1)*1j + 100), -1
-            elif r <= 100: # from bottom face to right side face (x -> -y, y -> x)
-                return (50*1j + (r + 50)), -1j
-            elif r <= 150: # from back face to to right side face (x -> -x, y -> -y)
-                return ((150-r+1)*1j + 150), -1
-            else: # from top face to back face (y -> x, x -> -y)
-                return (150*1j + (r - 100)), -1j
+            if r <= N:  # from ride side face to back face (y -> 150-y, x -> -x)
+                return ((3 * N - r + 1) * 1j + 2 * N), -1
+            elif r <= 2 * N:  # from bottom face to right side face (x -> -y, y -> x)
+                return (N * 1j + (r + N)), -1j
+            elif r <= 3 * N:  # from back face to to right side face (x -> -x, y -> -y)
+                return ((3 * N - r + 1) * 1j + 3 * N), -1
+            else:  # from top face to back face (y -> x, x -> -y)
+                return (3 * N * 1j + (r - 2 * N)), -1j
 
         case -1:
-            if r <= 50: # front face to left side (x -> -x, y -> -y) 
-                return (1 + (150-r+1)*1j), 1
-            elif r <= 100: # bottom to left (x -> -y, y -> x)
-                return (101*1j + (r-50)), 1j
-            elif r <= 150: # left to front (x -> -xx, y -> -y)
-                return (51 + (150-r+1)*1j), 1
-            else: # top to front (x -> -y, y -> x)
-                return (1j + (r-100)), 1j
-            
+            if r <= N:  # front face to left side (x -> -x, y -> -y)
+                return (1 + (3 * N - r + 1) * 1j), 1
+            elif r <= 2 * N:  # bottom to left (x -> -y, y -> x)
+                return ((2 * N + 1) * 1j + (r - N)), 1j
+            elif r <= 150:  # left to front (x -> -xx, y -> -y)
+                return (N + 1 + (3 * N - r + 1) * 1j), 1
+            else:  # top to front (x -> -y, y -> x)
+                return (1j + (r - 2 * N)), 1j
+
         case 1j:
-            if c <= 50: # top to right (y -> y, x -> x)
-                return (1j + (100+c)), 1j
-            elif c <= 100: # back to top (y -> -x, x -> y)
-                return (50 + (c + 100)*1j), -1
-            else: # right to bottom (y -> -x, x -> y)
-                return (100 + (c-50)*1j), -1
+            if c <= N:  # top to right (y -> y, x -> x)
+                return (1j + (2 * N + c)), 1j
+            elif c <= 2 * N:  # back to top (y -> -x, x -> y)
+                return (N + (c + 2 * N) * 1j), -1
+            else:  # right to bottom (y -> -x, x -> y)
+                return (2 * N + (c - N) * 1j), -1
 
         case -1j:
-            if c <= 50: # left to bottom (y -> -x, x -> y)
-                return (51 + (c+50)*1j), 1
-            elif c <= 100: # front to top (y -> -x, x -> y)
-                return (1 + (c+100)*1j), 1
-            else: # right to top (y -> -x, x -> y)
-                return (200j + (c-100)), -1j
+            if c <= N:  # left to bottom (y -> -x, x -> y)
+                return (N + 1 + (c + N) * 1j), 1
+            elif c <= 2 * N:  # front to top (y -> -x, x -> y)
+                return (1 + (c + 2 * N) * 1j), 1
+            else:  # right to top (y -> -x, x -> y)
+                return (4 * N * 1j + (c - 2 * N)), -1j
+# def wrap(p, dir):
+#     c, r = p.real, p.imag
+#     match dir:
+#         case 1:
+#             if r <= N:  # from ride side face to back face (y -> 150-y, x -> -x)
+#                 return ((3 * N - r + 1) * 1j + 4 * N), -1
+#             elif r <= 2 * N:  # from bottom face to right side face (x -> -y, y -> x)
+#                 return ((2*N+1) * 1j + (4*N-r+1 + N)), 1j
+#             else:  # from back face to to right side face (x -> -x, y -> -y)
+#                 return ((3*N-r+1) * 1j + (3*N)), -1
+
+#         case -1:
+#             if r <= N:  # front face to left side (x -> -x, y -> -y)
+#                 return ((N+1)*1j + (r+N) ), 1j
+#             elif r <= 2 * N:  # bottom to left (x -> -y, y -> x)
+#                 return ((4*N) * 1j + (4*N-r+N+1)), -1j
+#             else:  # left to front (x -> -xx, y -> -y)
+#                 return ((2*N-r+2*N+1) + (2*N) * 1j), -1j
+
+#         case 1j:
+#             if c <= N:  # top to right (y -> y, x -> x)
+#                 return (4*N*1j + (3*N-c+1)), -1j
+#             elif c <= 2 * N:  # back to top (y -> -x, x -> y)
+#                 return (2*N+1 + (2*N-c+1) * 1j), 1
+#             elif c <= 3*N:
+#                 return (2*N*1j + (3*N-c+1)),-1j
+#             else:  # right to bottom (y -> -x, x -> y)
+#                 return (1 + (4*n-c+1+N) * 1j), 1
+
+#         case -1j:
+#             if c <= N:  # left to bottom (y -> -x, x -> y)
+#                 return (1j + (N-c+1+2*N) ), 1j
+#             elif c <= 2 * N:  # front to top (y -> -x, x -> y)
+#                 return (2*N+1 + (c-N) * 1j), 1
+#             elif c <= 3*N:
+#                 return ((N+1)*1j + (3*N-c+1)), 1j
+#             else:  # right to top (y -> -x, x -> y)
+#                 return (3*N + (c-3*N+N)*1j), -1
+
 
 def walk(p0, dir, n):
     p = p0
@@ -141,29 +182,35 @@ def walk(p0, dir, n):
         # print(p,dir,p1,dir1)
         if p1 not in g:
             p1, dir1 = wrap(p, dir)
+            # print(f'   warp {p}->{p1}, {dir}->{dir1}')
         # print(p,dir,p1,dir1)
         if g[p1] == "#":
-            return p
+            return p, dir
         p, dir = p1, dir1
-    return p
+        # print(' step', p, dir)
+    return p, dir
 
 
 @perf
 def part2(dirs):
     dir = 1
     p = bounds[1j][0] + 1j
+    # print('start',p)
     while dirs:
         if dirs[0] in "RL":
             d, *dirs = dirs
             dir = dir * _DIR[d]
+            # print('rot',d,dir)
         else:
             n = re.match(r"\d+", "".join(dirs)).group()
-            p = walk(p, dir, int(n))
+            # print('walk',p,dir,n)
+            p, dir = walk(p, dir, int(n))
+            # print('land',p)
             dirs = dirs[len(n) :]
 
-    print(p, dir)
+    # print(p, dir)
     return {1: 0, 1j: 1, -1: 2, -1j: 3}[dir] + 1000 * p.imag + 4 * p.real
 
 
-# 171088.0 low
+# 197047
 print(f"part2: {part2(dirs)}")

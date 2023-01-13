@@ -134,7 +134,8 @@ def wrap(p, dir):
                 return (1 + (c + 2 * N) * 1j), 1
             else:  # right to top (y -> -x, x -> y)
                 return (4 * N * 1j + (c - 2 * N)), -1j
-# def wrap(p, dir):
+# def wrap(p, dir): 
+#    """special case for test"""
 #     c, r = p.real, p.imag
 #     match dir:
 #         case 1:

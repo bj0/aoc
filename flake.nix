@@ -34,6 +34,18 @@
           #   ignoreDataOutdated = true;
           # };
 
+          ppopython = pkgs.poetry2nix.mkPoetryEnv {
+            python = pkgs.pypy3;
+            projectDir = ./.;
+            editablePackageSources = {
+              aoc = ./.;
+            };
+            preferWheels = true;
+            # extraPackages = (ps: [ ps.wheel ]);
+            # extraPackages = (ps: [ ps.poetry ]);
+            # ignoreCollisions = true;
+          };
+
           popython = pkgs.poetry2nix.mkPoetryEnv {
             python = pkgs.python310;
             projectDir = ./.;

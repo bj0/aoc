@@ -10,6 +10,7 @@ advent-of-code-data = "^0.8.5"
 numpy = "^1.22.0"
 trio = "^0.17.0"
 networkx = "^2.5"
+matplotlib = "^3.8.2"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^20.8b1", allow-prereleases = true}

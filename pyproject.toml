@@ -4,17 +4,21 @@ version = "0.1.0"
 description = ""
 authors = ["Brian Parma <execrable@gmail.com>"]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-advent-of-code-data = "^0.8.5"
-numpy = "^1.22.0"
-trio = "^0.17.0"
-networkx = "^2.5"
-matplotlib = "^3.8.2"
+[virtualenvs]
+prefer-active-python=true
 
-[tool.poetry.dev-dependencies]
-black = {version = "^20.8b1", allow-prereleases = true}
-pylama = "^7.7.1"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+advent-of-code-data = "^1.3.2"
+numpy = "^1.22.0"
+trio = "^0.22.0"
+networkx = "^2.5"
+setuptools = "^66.0.0"
+
+[tool.poetry.group.dev.dependencies]
+black = {version = "^23.1a1", allow-prereleases = true}
+pylama = "^8.4.1"
 
 [build-system]
 requires = ["poetry>=0.12"]

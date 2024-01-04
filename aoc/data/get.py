@@ -3,7 +3,7 @@ from aocd import get_data
 from pathlib import Path
 
 if __name__ == '__main__':
-    for year in (2020, 2021):
+    for year in (2020, 2021, 2022):
         d = Path(f"{year}")
         if not d.is_dir():
             print(f"missing dir {d}")
